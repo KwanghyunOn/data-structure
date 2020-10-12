@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/deque.hpp
+string
+-
+iostream
+-
+type_traits
+-
+optional
+-
+iostream
+-
+memory
+-
+cassert
+-
+
+../palindrome/include/palindrome.hpp
+string
+-
+deque.hpp
+../palindrome/include/deque.hpp
+
+/home/kwanghyunon/workspace/data-structures-20fall/01-deque/examples/main.cpp
+deque.hpp
+/home/kwanghyunon/workspace/data-structures-20fall/01-deque/examples/deque.hpp
+palindrome.hpp
+/home/kwanghyunon/workspace/data-structures-20fall/01-deque/examples/palindrome.hpp
+

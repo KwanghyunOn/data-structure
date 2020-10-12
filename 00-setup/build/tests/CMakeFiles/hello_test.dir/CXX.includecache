@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/hello.hpp
+string
+-
+type_traits
+-
+
+/home/kwanghyunon/workspace/data-structures-20fall/00-setup/tests/hello_test.cpp
+vector
+-
+hello.hpp
+/home/kwanghyunon/workspace/data-structures-20fall/00-setup/tests/hello.hpp
+catch2/catch.hpp
+-
+

@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/deque.hpp
+string
+-
+iostream
+-
+type_traits
+-
+optional
+-
+iostream
+-
+memory
+-
+cassert
+-
+
+/home/kwanghyunon/workspace/data-structures-20fall/01-deque/tests/deque_test.cpp
+vector
+-
+deque.hpp
+/home/kwanghyunon/workspace/data-structures-20fall/01-deque/tests/deque.hpp
+catch2/catch.hpp
+-
+
