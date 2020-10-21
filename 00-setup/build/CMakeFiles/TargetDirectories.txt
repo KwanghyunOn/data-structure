@@ -1,5 +1,0 @@
-/home/kwanghyunon/workspace/data-structures-20fall/00-setup/build/CMakeFiles/rebuild_cache.dir
-/home/kwanghyunon/workspace/data-structures-20fall/00-setup/build/CMakeFiles/edit_cache.dir
-/home/kwanghyunon/workspace/data-structures-20fall/00-setup/build/tests/CMakeFiles/rebuild_cache.dir
-/home/kwanghyunon/workspace/data-structures-20fall/00-setup/build/tests/CMakeFiles/hello_test.dir
-/home/kwanghyunon/workspace/data-structures-20fall/00-setup/build/tests/CMakeFiles/edit_cache.dir

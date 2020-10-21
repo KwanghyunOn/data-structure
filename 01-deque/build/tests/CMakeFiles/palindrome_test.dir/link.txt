@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/palindrome_test.dir/palindrome_test.cpp.o -o palindrome_test 

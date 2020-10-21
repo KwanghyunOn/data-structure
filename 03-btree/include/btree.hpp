@@ -89,6 +89,7 @@ bool BTree<T, B>::insert(const T& t) {
     if (root->n >= 2 * B - 1) {
         BTreeNode<T, B>* new_root = new BTreeNode<T, B>{};
         new_root->edges[0] = root;
+		new_root->type = NodeType::INTERNAL;
         BTreeNode<T, B>::split_child(*new_root, 0);
         root = new_root;
     }
@@ -128,8 +129,25 @@ const std::optional<size_t> BTree<T, B>::depth() const {
 
 template<typename T, size_t B>
 bool BTreeNode<T, B>::insert(const T& t) {
-    // TODO
-    return false;
+	size_t idx = get_index(t);
+	if(idx < 2*B-1 && keys[idx] == t)
+		return false;
+
+	if(type == NodeType::LEAF) {
+		for(size_t i = n; i != idx; i--)
+			keys[i] = keys[i-1];
+		keys[idx] = t;
+		n++;
+		return true;
+	}
+
+	if(!edges[idx])
+		edges[idx] = new BTreeNode<T, B>{};
+	if(edges[idx]->n >= 2*B-1)
+		split_child(*this, idx);
+	
+	idx = get_index(t);
+	return edges[idx]->insert(t);	
 }
 
 /**
@@ -148,8 +166,13 @@ bool BTreeNode<T, B>::insert(const T& t) {
  */
 template<typename T, size_t B>
 size_t BTreeNode<T, B>::get_index(const T& t) {
-    // TODO
-    return 0;
+	size_t idx = 0;
+	while(idx < n) {
+		if(t <= keys[idx])
+			return idx;
+		idx++;
+	}
+	return idx;
 }
 
 template<typename T, size_t B>
@@ -192,7 +215,26 @@ void BTreeNode<T, B>::for_all_nodes(std::function<void(const BTreeNode<T,B>&)> f
    the parent is not full. */
 template<typename T, size_t B>
 void BTreeNode<T, B>::split_child(BTreeNode<T, B>& parent, size_t idx) {
-    // TODO
+	BTreeNode<T, B> *child = parent.edges[idx];
+	T& m = child->keys[B-1];
+
+	BTreeNode<T, B> *new_node = new BTreeNode<T, B>{};
+	new_node->type = child->type;
+	child->n = new_node->n = B-1;
+	for(size_t i = 0; i < B-1; i++) {
+		new_node->keys[i] = child->keys[i+B];
+		new_node->edges[i] = child->edges[i+B];
+	}
+	new_node->edges[B-1] = child->edges[2*B-1];
+
+	parent.edges[parent.n + 1] = parent.edges[parent.n];
+	for(size_t i = parent.n; i != idx; i--) {
+		parent.keys[i] = parent.keys[i-1];
+		parent.edges[i] = parent.edges[i-1];
+	}
+	parent.keys[idx] = m;
+	parent.edges[idx+1] = new_node;
+	parent.n++;
 }
 
 template<typename T, size_t B>
