@@ -15,6 +15,7 @@
 #include <iostream>
 #include <optional>
 #include <fstream>
+#include <stdio.h>
 
 static size_t null_count = 0;
 
@@ -224,21 +225,49 @@ void RBNode<T>::flip_color() {
 }
 
 template<typename T>
-RBNode<T>* RBNode<T>::rotate_right(std::unique_ptr<RBNode<T>>& n) {
-    // TODO
-    return nullptr;
+RBNode<T>* RBNode<T>::rotate_right(std::unique_ptr<RBNode<T>>& y) {
+	assert(y->left);
+	RBNode<T>* x = y->left.release();
+	std::swap(x->color, y->color);
+	y->left = std::move(x->right);		
+	x->right = std::move(y);
+	return x;
 }
 
 template<typename T>
-RBNode<T>* RBNode<T>::rotate_left(std::unique_ptr<RBNode<T>>& n) {
-    // TODO
-    return nullptr;
+RBNode<T>* RBNode<T>::rotate_left(std::unique_ptr<RBNode<T>>& x) {
+	assert(x->right);
+	RBNode<T>* y = x->right.release();
+	std::swap(x->color, y->color);
+	x->right = std::move(y->left);		
+	y->left = std::move(x);
+	return y;
 }
 
 template<typename T>
 RBNode<T>* RBNode<T>::insert(std::unique_ptr<RBNode<T>>& n, const T& t) {
-    // TODO
-    return nullptr;
+	if(!n) {
+		n.reset(new RBNode<T>(t));
+		return n.release();
+	}
+
+	if(RBNode<T>::is_red(n->left) && RBNode<T>::is_red(n->right))
+		n->flip_color();
+	
+	if(t == n->key)
+		return n.release();
+	else if(t < n->key)
+		n->left.reset(RBNode<T>::insert(n->left, t));
+	else
+		n->right.reset(RBNode<T>::insert(n->right, t));
+
+	if(RBNode<T>::is_red(n->right))
+		n.reset(rotate_left(n));
+	
+	if(RBNode<T>::is_red(n->left) && RBNode<T>::is_red(n->left->left))
+		n.reset(rotate_right(n));
+
+	return n.release();
 }
 
 template<typename T>
