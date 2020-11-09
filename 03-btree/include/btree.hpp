@@ -92,6 +92,7 @@ bool BTree<T, B>::insert(const T& t) {
 		new_root->type = NodeType::INTERNAL;
         BTreeNode<T, B>::split_child(*new_root, 0);
         root = new_root;
+		// root->type = NodeType::INTERNAL;
     }
 
     return root->insert(t);
