@@ -4,6 +4,7 @@
 #include <functional>
 #include <iterator>
 #include <memory>
+#include <cstring>
 
 #define INITIAL_TABLE_SIZE 64
 
@@ -44,8 +45,7 @@ template <typename K, typename V, typename F>
 class LinearProbeHashTable: public HashTable<K, V, F> {
 private:
     virtual unsigned long get_next_pos(unsigned long pos, unsigned long step) {
-        // TODO
-        return 0;
+		return (pos + step) % HashTable<K, V, F>::get_table_size();
     }
 };
 
@@ -53,8 +53,7 @@ template <typename K, typename V, typename F>
 class QuadProbeHashTable: public HashTable<K, V, F> {
 private:
     virtual unsigned long get_next_pos(unsigned long pos, unsigned long step) {
-        // TODO
-        return 0;
+		return (pos + step*(step+1)/2) % HashTable<K, V, F>::get_table_size();
     }
 };
 
@@ -66,36 +65,76 @@ HashTable<K, V, F>::HashTable(): table(), hash_func(),
 
 template <typename K, typename V, typename F>
 HashTable<K, V, F>::~HashTable() {
-    // TODO
+	delete[] table;
 }
 
 template <typename K, typename V, typename F>
 void HashTable<K, V, F>::enlarge_table() {
-    // TODO
+	table_size <<= 1;
+	size = 0;
+	HashSlot<K, V> *old_table = table;
+	table = new HashSlot<K, V>[table_size];
+	for(size_t i = 0; i < (table_size>>1); i++) {
+		if(old_table[i].is_removed() || old_table[i].is_empty()) continue;
+		put(old_table[i].get_key(), old_table[i].get_value());
+	}
+	delete[] old_table;
 }
 
 template <typename K, typename V, typename F>
 unsigned long HashTable<K, V, F>::get_pos(const K key) {
-    // TODO
-    return 0;
+	return hash_func(key) % table_size;
 }
 
 template <typename K, typename V, typename F>
 int HashTable<K, V, F>::get(const K &key, V &value) {
-    // TODO
-    return 0;
+	for(unsigned long i = 0; i < table_size; i++) {
+		unsigned long pos = get_next_pos(get_pos(key), i);
+		//printf("[get %d] Step %lu: pos %lu\n", key, i, pos);
+		if(table[pos].is_removed()) continue;
+		if(table[pos].is_empty()) return -1;
+		if(table[pos].get_key() == key) {
+			value = table[pos].get_value();
+			return (int)i;
+		}
+	}
+	return -1;
 }
 
 template <typename K, typename V, typename F>
 int HashTable<K, V, F>::put(const K &key, const V &value) {
-    // TODO
-    return 0;
+	for(unsigned long i = 0; i < table_size; i++) {
+		unsigned long pos = get_next_pos(get_pos(key), i);
+		//printf("[put %d] Step %lu: pos %lu\n", key, i, pos);
+		if(table[pos].is_removed()) continue;
+		if(table[pos].is_empty()) {
+			table[pos].set_key_value(key, value);
+			//printf("[put %d] table[%lu] = %d\n", key, pos, value);
+			size++;
+			if(get_load_factor() >= 0.5)
+				enlarge_table();
+			return (int)i;
+		} else if(table[pos].get_key() == key) {
+			return -1;
+		}
+	}
+	return -1;
 }
 
 template <typename K, typename V, typename F>
 int HashTable<K, V, F>::remove(const K &key) {
-    // TODO    
-    return 0;
+	for(unsigned long i = 0; i < table_size; i++) {
+		unsigned long pos = get_next_pos(get_pos(key), i);
+		//printf("[remove %d] Step %lu: pos %lu\n", key, i, pos);
+		if(table[pos].is_removed()) continue;
+		else if(table[pos].is_empty()) return -1;
+		else if(table[pos].get_key() == key) {
+			table[pos].set_removed();
+			size--;
+			return (int)i;
+		}
+	}
+	return -1;
 }
 
 template <typename K, typename V, typename F>
