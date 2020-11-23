@@ -111,24 +111,45 @@ FibonacciHeap<T>::~FibonacciHeap() {
 
 template <typename T>
 std::optional<T> FibonacciHeap<T>::get_min() const {
-    // TODO
-    return std::nullopt;
+	if(!min_node) 
+		return std::nullopt;
+	else
+		return min_node->key;
 }
 
 template <typename T>
 void FibonacciHeap<T>::insert(const T& item) {
-    // TODO
+	insert(std::make_shared<FibonacciNode<T>>(item));
 }
 
 template <typename T>
 void FibonacciHeap<T>::insert(std::shared_ptr<FibonacciNode<T>>& node) {
-    // TODO
+	if(!min_node)
+		min_node = std::move(node);
+	else {
+		node->right = min_node;
+		min_node->left = std::weak_ptr<FibonacciNode<T>>(node);
+		if(node->key < min_node->key)
+			min_node = node;
+	}
+	size_++;
 }
 
 template <typename T>
 std::optional<T> FibonacciHeap<T>::extract_min() {
-    // TODO
-    return std::nullopt;
+	if(!min_node)
+		return std::nullopt;
+	for(auto z = min_node->child; z; z = z->right) {
+		z->right = min_node;
+		min_node->left = std::weak_ptr<FibonacciNode<T>>(z);
+		z->parent.reset();
+		if(!z->right || z->right == min_node->child)
+			break;
+	}
+	
+	if(!min_node->right) {
+		auto l = min_node->left, r = min_node->right;
+
 }
 
 template <typename T>
