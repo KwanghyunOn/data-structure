@@ -104,9 +104,22 @@ class FibonacciHeap : public PriorityQueue<T> {
         void merge(std::shared_ptr<FibonacciNode<T>>& x, std::shared_ptr<FibonacciNode<T>>& y);
 };
 
+
+template <typename T>
+void delete_node(std::shared_ptr<FibonacciNode<T>>& node) {
+	if(!node) return;
+	auto z = node;
+	do {
+		if(z->child) delete_node(z->child);
+		z = z->right;
+	} while(z && z != node);
+	node->right = nullptr;
+	node = nullptr;
+}
+
 template <typename T>
 FibonacciHeap<T>::~FibonacciHeap() {
-	min_node = nullptr;
+	delete_node(min_node);	
 }
 
 template <typename T>
@@ -157,6 +170,7 @@ std::optional<T> FibonacciHeap<T>::extract_min() {
 
 	T min_val = min_node->key;
 	if(min_node->right == min_node) {
+		min_node->right = nullptr;
 		min_node = nullptr;
 	} else {
 		std::shared_ptr<FibonacciNode<T>> l = min_node->left.lock();
@@ -176,7 +190,7 @@ void FibonacciHeap<T>::consolidate() {
 	int len = int(log(size_) / log(phi)) + 10;
 	std::vector<std::shared_ptr<FibonacciNode<T>>> A(len, nullptr);
 	auto last_root = min_node->left.lock();
-	for(auto z = min_node, next_root = z->right;; z = next_root, next_root = z->right) {
+	for(auto z = min_node, next_root = z->right; ; z = next_root, next_root = z->right) {
 		auto x = z;
 		size_t d = x->degree;
 		while(d < len && A[d]) {
