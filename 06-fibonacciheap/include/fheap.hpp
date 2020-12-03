@@ -21,12 +21,13 @@ template <typename T>
 class FibonacciNode {
     public:
         // constructors
-        FibonacciNode()
-            :key(std::nullopt), degree(0), child(nullptr), right(nullptr) {}
+        FibonacciNode();
         FibonacciNode(const T& item)
             :key(item), degree(0), child(nullptr), right(nullptr) {}
 
         // destructor
+	// If you want to implement custom destructor, remove the default keyword
+	// and implement your custom destructor.
         ~FibonacciNode() = default;
 
         T key;
