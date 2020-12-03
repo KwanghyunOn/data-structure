@@ -43,13 +43,32 @@ class Graph {
            from 0 to n-1. */
         Graph(size_t num_vertices,
               const edges_t& edges,
-              GraphType Type) {
-            // TODO: Implement the constructor
+              GraphType type)
+			: num_vertices(num_vertices), type(type) {
+			this->num_vertices = num_vertices;
+			graph.resize(num_vertices);
+
+			if(type == GraphType::UNDIRECTED) {
+				for(auto &edge : edges) {
+					const auto& [ from, to, weight ] = edge;
+					graph[from].emplace_back(from, to, weight);
+					graph[to].emplace_back(to, from, weight);
+				}
+			} else {
+				for(auto &edge : edges) {
+					const auto& [ from, to, weight ] = edge;
+					graph[from].emplace_back(from, to, weight);
+				}
+			}
         }
-        // TODO(optional): Define helper functions, e.g., out_deges(v)
+
+		size_t get_num_vertices() { return num_vertices; }
+		std::vector<edge_t> adj_list(vertex_t v) { return graph[v]; }
 		
     private:
-        // TODO: Roll out your own data structures
+		size_t num_vertices;
+		std::vector<std::vector<edge_t>> graph;
+		GraphType type;
 };
 
 #endif // __GRAPH_H_
