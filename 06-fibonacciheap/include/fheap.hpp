@@ -105,9 +105,22 @@ class FibonacciHeap : public PriorityQueue<T> {
         void merge(std::shared_ptr<FibonacciNode<T>>& x, std::shared_ptr<FibonacciNode<T>>& y);
 };
 
+
+template <typename T>
+void delete_node(std::shared_ptr<FibonacciNode<T>>& node) {
+	if(!node) return;
+	auto z = node;
+	do {
+		if(z->child) delete_node(z->child);
+		z = z->right;
+	} while(z && z != node);
+	node->right = nullptr;
+	node = nullptr;
+}
+
 template <typename T>
 FibonacciHeap<T>::~FibonacciHeap() {
-    // TODO
+	delete_node(min_node);	
 }
 
 template <typename T>
@@ -120,16 +133,22 @@ std::optional<T> FibonacciHeap<T>::get_min() const {
 
 template <typename T>
 void FibonacciHeap<T>::insert(const T& item) {
-	insert(std::make_shared<FibonacciNode<T>>(item));
+	std::shared_ptr<FibonacciNode<T>> node = std::make_shared<FibonacciNode<T>>(item);
+	insert(node);
 }
 
 template <typename T>
 void FibonacciHeap<T>::insert(std::shared_ptr<FibonacciNode<T>>& node) {
-	if(!min_node)
-		min_node = std::move(node);
-	else {
+	if(!min_node) {
+		min_node = node;
+		min_node->right = min_node;
+		min_node->left = min_node;
+	} else {
+		std::shared_ptr<FibonacciNode<T>> l = min_node->left.lock();
+		l->right = node;
+		node->left = l;
 		node->right = min_node;
-		min_node->left = std::weak_ptr<FibonacciNode<T>>(node);
+		min_node->left = node;
 		if(node->key < min_node->key)
 			min_node = node;
 	}
@@ -140,27 +159,80 @@ template <typename T>
 std::optional<T> FibonacciHeap<T>::extract_min() {
 	if(!min_node)
 		return std::nullopt;
-	for(auto z = min_node->child; z; z = z->right) {
-		z->right = min_node;
-		min_node->left = std::weak_ptr<FibonacciNode<T>>(z);
-		z->parent.reset();
-		if(!z->right || z->right == min_node->child)
-			break;
+	if(min_node->child) {
+		std::shared_ptr<FibonacciNode<T>> first_child = min_node->child;
+		std::shared_ptr<FibonacciNode<T>> last_child = first_child->left.lock();
+		std::shared_ptr<FibonacciNode<T>> l = min_node->left.lock();
+		l->right = first_child;
+		first_child->left = l;
+		last_child->right = min_node;
+		min_node->left = last_child;
 	}
-	
-	if(!min_node->right) {
-		auto l = min_node->left, r = min_node->right;
 
+	T min_val = min_node->key;
+	if(min_node->right == min_node) {
+		min_node->right = nullptr;
+		min_node = nullptr;
+	} else {
+		std::shared_ptr<FibonacciNode<T>> l = min_node->left.lock();
+		std::shared_ptr<FibonacciNode<T>> r = min_node->right;
+		l->right = r;
+		r->left = l;
+		min_node = r;
+		consolidate();
+	}
+	size_--;
+	return min_val;
 }
 
 template <typename T>
 void FibonacciHeap<T>::consolidate() {
-    // TODO
+	float phi = (1 + sqrt(5)) / 2.0;
+	int len = int(log(size_) / log(phi)) + 10;
+	std::vector<std::shared_ptr<FibonacciNode<T>>> A(len, nullptr);
+	auto last_root = min_node->left.lock();
+	for(auto z = min_node, next_root = z->right; ; z = next_root, next_root = z->right) {
+		auto x = z;
+		size_t d = x->degree;
+		while(d < len && A[d]) {
+			auto y = A[d];
+			if(x->key > y->key) swap(x, y);
+			merge(x, y);
+			A[d] = nullptr;
+			d++;
+		}
+		A[d] = x;
+		if(z == last_root) break;
+	}
+	min_node = nullptr;
+	for(auto &z : A) {
+		if(!z) continue;
+		if(!min_node || z->key < min_node->key)
+			min_node = z;
+	}
 }
 
 template <typename T>
 void FibonacciHeap<T>::merge(std::shared_ptr<FibonacciNode<T>>& x, std::shared_ptr<FibonacciNode<T>>& y) {
-    // TODO
+	std::shared_ptr<FibonacciNode<T>> l = y->left.lock();
+	std::shared_ptr<FibonacciNode<T>> r = y->right;
+	l->right = r;
+	r->left = l;
+
+	if(!x->child) {
+		x->child = y;
+		y->parent = x;
+		y->right = y;
+		y->left = y;
+	} else {
+		std::shared_ptr<FibonacciNode<T>> last_child = x->child->left.lock();
+		y->parent = x;
+		y->right = x->child;
+		y->left = last_child;
+		last_child->right = y;
+		x->child->left = y;
+	}
+	x->degree++;
 }
 
 #endif // __FHEAP_H_
